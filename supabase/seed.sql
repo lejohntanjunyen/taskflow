@@ -1,0 +1,11 @@
+-- Development seed data
+-- Run manually after migrations: psql ... < supabase/seed.sql
+-- Note: requires a valid auth.users entry — sign up first via the app
+
+-- Example: insert a project (replace user_id with your actual auth user id)
+-- insert into projects (name, description, user_id)
+-- values (
+--   'TaskFlow Demo',
+--   'A sample project to test the app',
+--   '<your-user-id>'
+-- );
