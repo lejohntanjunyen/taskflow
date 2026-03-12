@@ -37,6 +37,7 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       tasks: {
         Row: {
@@ -72,6 +73,7 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       comments: {
         Row: {
@@ -95,6 +97,7 @@ export type Database = {
           user_id?: string
           created_at?: string
         }
+        Relationships: []
       }
     }
     Views: Record<string, never>
@@ -103,6 +106,7 @@ export type Database = {
       task_status: 'todo' | 'in_progress' | 'done'
       task_priority: 'low' | 'medium' | 'high'
     }
+    CompositeTypes: Record<string, never>
   }
 }
 
