@@ -3,10 +3,13 @@
 import { useState } from 'react'
 import { TaskForm } from '@/components/forms/TaskForm'
 import { TaskList } from '@/components/dashboard/TaskList'
+import { FilterBar } from '@/components/dashboard/FilterBar'
 import { CommentSection } from '@/components/dashboard/CommentSection'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import type { Task, Comment } from '@/types/database'
+
+type FilterValue = 'all' | Task['status']
 
 type ProjectDetailProps = {
   projectId: string
@@ -25,6 +28,17 @@ export function ProjectDetail({
 }: ProjectDetailProps) {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [showNewTaskForm, setShowNewTaskForm] = useState(false)
+  const [activeFilter, setActiveFilter] = useState<FilterValue>('all')
+
+  const filteredTasks =
+    activeFilter === 'all' ? tasks : tasks.filter((t) => t.status === activeFilter)
+
+  const counts: Record<FilterValue, number> = {
+    all: tasks.length,
+    todo: tasks.filter((t) => t.status === 'todo').length,
+    in_progress: tasks.filter((t) => t.status === 'in_progress').length,
+    done: tasks.filter((t) => t.status === 'done').length,
+  }
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -41,6 +55,8 @@ export function ProjectDetail({
           </Button>
         </div>
 
+        <FilterBar active={activeFilter} onFilter={setActiveFilter} counts={counts} />
+
         {showNewTaskForm && (
           <div className="rounded-lg border p-4">
             <TaskForm
@@ -50,7 +66,7 @@ export function ProjectDetail({
           </div>
         )}
 
-        <TaskList tasks={tasks} onSelectTask={setSelectedTask} />
+        <TaskList tasks={filteredTasks} onSelectTask={setSelectedTask} />
       </div>
 
       {/* Right: task detail + comments */}
