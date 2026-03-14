@@ -1,0 +1,102 @@
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { createServerClient } from '@/lib/supabase/server'
+import { createTaskSchema, updateTaskStatusSchema } from '@/lib/validations'
+import type { ApiResponse } from '@/types'
+import type { Task } from '@/types/database'
+
+export async function createTask(formData: FormData): Promise<ApiResponse<Task>> {
+  const parsed = createTaskSchema.safeParse({
+    title: formData.get('title'),
+    description: formData.get('description') || undefined,
+    status: formData.get('status') || 'todo',
+    priority: formData.get('priority') || 'medium',
+    projectId: formData.get('projectId'),
+  })
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.flatten().fieldErrors.title?.[0] ?? 'Invalid input',
+    }
+  }
+
+  const supabase = await createServerClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Unauthorized' }
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .insert({
+      title: parsed.data.title,
+      description: parsed.data.description ?? null,
+      status: parsed.data.status,
+      priority: parsed.data.priority,
+      project_id: parsed.data.projectId,
+      user_id: user.id,
+    })
+    .select('id, title, description, status, priority, project_id, user_id, created_at, updated_at')
+    .single()
+
+  if (error || !data) {
+    return { success: false, error: 'Failed to create task' }
+  }
+
+  revalidatePath(`/dashboard/projects/${parsed.data.projectId}`)
+  return { success: true, data }
+}
+
+export async function updateTaskStatus(
+  taskId: string,
+  status: 'todo' | 'in_progress' | 'done'
+): Promise<ApiResponse<Task>> {
+  const parsed = updateTaskStatusSchema.safeParse({ status })
+
+  if (!parsed.success) {
+    return { success: false, error: 'Invalid status value' }
+  }
+
+  const supabase = await createServerClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Unauthorized' }
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({ status: parsed.data.status, updated_at: new Date().toISOString() })
+    .eq('id', taskId)
+    .eq('user_id', user.id)
+    .select('id, title, description, status, priority, project_id, user_id, created_at, updated_at')
+    .single()
+
+  if (error || !data) {
+    return { success: false, error: 'Failed to update task status' }
+  }
+
+  revalidatePath(`/dashboard/projects/${data.project_id}`)
+  return { success: true, data }
+}
+
+export async function deleteTask(taskId: string): Promise<ApiResponse<null>> {
+  const supabase = await createServerClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Unauthorized' }
+
+  const { error } = await supabase
+    .from('tasks')
+    .delete()
+    .eq('id', taskId)
+    .eq('user_id', user.id)
+
+  if (error) {
+    return { success: false, error: 'Failed to delete task' }
+  }
+
+  return { success: true, data: null }
+}
