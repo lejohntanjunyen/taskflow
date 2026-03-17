@@ -22,6 +22,7 @@ export async function createTask(formData: FormData): Promise<ApiResponse<Task>>
     description: formData.get('description') || undefined,
     status: formData.get('status') || 'todo',
     priority: formData.get('priority') || 'medium',
+    due_date: formData.get('due_date') || null,
     projectId: formData.get('projectId'),
   })
 
@@ -46,10 +47,11 @@ export async function createTask(formData: FormData): Promise<ApiResponse<Task>>
       status: parsed.data.status,
       priority: parsed.data.priority,
       task_type: toTaskType(formData.get('task_type')),
+      due_date: parsed.data.due_date ?? null,
       project_id: parsed.data.projectId,
       user_id: user.id,
     })
-    .select('id, title, description, status, priority, task_type, project_id, user_id, created_at, updated_at')
+    .select('id, title, description, status, priority, task_type, due_date, project_id, user_id, created_at, updated_at')
     .single()
 
   if (error || !data) {
@@ -81,7 +83,7 @@ export async function updateTaskStatus(
     .update({ status: parsed.data.status, updated_at: new Date().toISOString() })
     .eq('id', taskId)
     .eq('user_id', user.id)
-    .select('id, title, description, status, priority, task_type, project_id, user_id, created_at, updated_at')
+    .select('id, title, description, status, priority, task_type, due_date, project_id, user_id, created_at, updated_at')
     .single()
 
   if (error || !data) {

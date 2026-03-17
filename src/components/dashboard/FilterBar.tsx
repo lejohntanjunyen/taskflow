@@ -1,6 +1,5 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
 import type { Task } from '@/types/database'
 
 type FilterValue = 'all' | Task['status']
@@ -20,17 +19,32 @@ const FILTERS: { label: string; value: FilterValue }[] = [
 
 export function FilterBar({ active, onFilter, counts }: FilterBarProps) {
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="Filter tasks by status">
+    <div
+      className="inline-flex items-center gap-1 rounded-lg bg-muted p-1"
+      role="group"
+      aria-label="Filter tasks by status"
+    >
       {FILTERS.map(({ label, value }) => (
-        <Button
+        <button
           key={value}
-          variant={active === value ? 'default' : 'outline'}
-          size="sm"
+          type="button"
           aria-pressed={active === value}
           onClick={() => onFilter(value)}
+          className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-150
+            ${active === value
+              ? 'bg-card text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground hover:bg-card/60'
+            }`}
         >
-          {label} {counts[value]}
-        </Button>
+          {label}
+          <span className={`tabular-nums rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none
+            ${active === value
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-border text-muted-foreground'
+            }`}>
+            {counts[value]}
+          </span>
+        </button>
       ))}
     </div>
   )

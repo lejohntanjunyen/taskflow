@@ -25,6 +25,7 @@ export const createTaskSchema = z.object({
   description: z.string().max(2000, 'Description must be 2000 characters or less').optional(),
   status: z.enum(['todo', 'in_progress', 'done']).default('todo'),
   priority: z.enum(['low', 'medium', 'high']).default('medium'),
+  due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date').nullable().optional(),
   projectId: z.string().uuid('Invalid project ID'),
 })
 

@@ -33,7 +33,7 @@ export default async function ProjectPage({ params }: Props) {
   // Fetch tasks for this project
   const { data: tasks } = await supabase
     .from('tasks')
-    .select('id, title, description, status, priority, task_type, project_id, user_id, created_at, updated_at')
+    .select('id, title, description, status, priority, task_type, due_date, project_id, user_id, created_at, updated_at')
     .eq('project_id', id)
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
