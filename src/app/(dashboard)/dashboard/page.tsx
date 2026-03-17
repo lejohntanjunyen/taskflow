@@ -1,6 +1,8 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { TokenBudgetWidget } from '@/components/dashboard/TokenBudgetWidget'
 
 export default async function DashboardPage() {
   const supabase = await createServerClient()
@@ -13,6 +15,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <Suspense fallback={null}>
+        <TokenBudgetWidget />
+      </Suspense>
+
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
         <Link

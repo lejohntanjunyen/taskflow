@@ -1,7 +1,9 @@
 import { notFound, redirect } from 'next/navigation'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import { ProjectDetail } from '@/components/dashboard/ProjectDetail'
+import { SuggestTasksPanel } from '@/components/dashboard/SuggestTasksPanel'
 import type { Comment } from '@/types/database'
 
 type Props = {
@@ -31,7 +33,7 @@ export default async function ProjectPage({ params }: Props) {
   // Fetch tasks for this project
   const { data: tasks } = await supabase
     .from('tasks')
-    .select('id, title, description, status, priority, project_id, user_id, created_at, updated_at')
+    .select('id, title, description, status, priority, task_type, project_id, user_id, created_at, updated_at')
     .eq('project_id', id)
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
@@ -81,6 +83,14 @@ export default async function ProjectPage({ params }: Props) {
         commentsByTask={commentsByTask}
         currentUserId={user.id}
       />
+
+      <Suspense fallback={null}>
+        <SuggestTasksPanel
+          projectId={project.id}
+          projectName={project.name}
+          existingTaskTitles={taskList.map((t) => t.title)}
+        />
+      </Suspense>
     </div>
   )
 }

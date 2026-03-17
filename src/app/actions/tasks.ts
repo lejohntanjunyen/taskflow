@@ -1,10 +1,20 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { createTaskSchema, updateTaskStatusSchema } from '@/lib/validations'
 import type { ApiResponse } from '@/types'
-import type { Task } from '@/types/database'
+import type { Task, TaskType } from '@/types/database'
+
+const TASK_TYPES: TaskType[] = ['code', 'research', 'content', 'design', 'subtask']
+function toTaskType(raw: unknown): TaskType {
+  const str = z.string().safeParse(raw)
+  if (str.success && (TASK_TYPES as string[]).includes(str.data)) {
+    return str.data as TaskType
+  }
+  return 'code'
+}
 
 export async function createTask(formData: FormData): Promise<ApiResponse<Task>> {
   const parsed = createTaskSchema.safeParse({
@@ -35,10 +45,11 @@ export async function createTask(formData: FormData): Promise<ApiResponse<Task>>
       description: parsed.data.description ?? null,
       status: parsed.data.status,
       priority: parsed.data.priority,
+      task_type: toTaskType(formData.get('task_type')),
       project_id: parsed.data.projectId,
       user_id: user.id,
     })
-    .select('id, title, description, status, priority, project_id, user_id, created_at, updated_at')
+    .select('id, title, description, status, priority, task_type, project_id, user_id, created_at, updated_at')
     .single()
 
   if (error || !data) {
@@ -70,7 +81,7 @@ export async function updateTaskStatus(
     .update({ status: parsed.data.status, updated_at: new Date().toISOString() })
     .eq('id', taskId)
     .eq('user_id', user.id)
-    .select('id, title, description, status, priority, project_id, user_id, created_at, updated_at')
+    .select('id, title, description, status, priority, task_type, project_id, user_id, created_at, updated_at')
     .single()
 
   if (error || !data) {
